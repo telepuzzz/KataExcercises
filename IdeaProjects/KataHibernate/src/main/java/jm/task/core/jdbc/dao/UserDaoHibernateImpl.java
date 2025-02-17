@@ -14,8 +14,9 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             String hql = "CREATE TABLE IF NOT EXISTS User (" +
                     "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                     "name VARCHAR(255), " +
@@ -24,20 +25,25 @@ public class UserDaoHibernateImpl implements UserDao {
             session.createSQLQuery(hql).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             throw new RuntimeException("Ошибка при создании таблицы пользователей", e);
         }
     }
 
     @Override
     public void dropUsersTable() {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             String hql = "DROP TABLE IF EXISTS User";
             session.createSQLQuery(hql).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             throw new RuntimeException("Ошибка при удалении таблицы пользователей", e);
         }
     }
