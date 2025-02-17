@@ -44,15 +44,18 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             User user = session.get(User.class, id);
             if (user != null) {
                 session.delete(user);
             }
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             throw new RuntimeException("Ошибка при удалении пользователя", e);
         }
     }
@@ -64,32 +67,37 @@ public class UserDaoHibernateImpl implements UserDao {
             Query<User> query = session.createQuery(hql, User.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Ошибка при получении всех пользователей", e);
         }
     }
 
     @Override
     public void cleanUsersTable() {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             String hql = "DELETE FROM User";
             session.createQuery(hql).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             throw new RuntimeException("Ошибка при очистке таблицы пользователей", e);
         }
     }
 
     @Override
     public void saveUser(User user) {
+        Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             session.save(user);
             transaction.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             throw new RuntimeException("Ошибка при сохранении пользователя", e);
         }
     }
